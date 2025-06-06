@@ -1,4 +1,4 @@
-# Compute Engineで推論環境を整える手順
+# Google Compute Engineで推論環境を整える手順
 
 1. CatVTONはCUDAを使うので「1 x NVIDIA T4」GPUを選択してCompute Engineを作成する
     - ちなみに最近Cloud RunもGPU対応したが、SSHログインしてスクリプト実行したりVS Code Remote Development Syncで同期開発するためにVMの方が良い
@@ -10,6 +10,9 @@
     - ref. https://cloud.google.com/compute/docs/gpus/install-drivers-gpu?hl=ja#no-secure-boot
 1. VM内で`nvidia-smi`コマンドで利用可能なGPUが返ってこればOK
     - Not Foundの場合はドライバがインストールされていない
+1. 必要なツールをインストール
+    - `sudo apt-get install git-all`
+    - ref. [Debianでuvを安全にインストールする方法](https://zenn.dev/nogajun/articles/6effc1d1762fce)
 1. Cloud Storageにテストデータセットバケットを作成し格納
     - VITON-HDは[こちら](https://drive.google.com/file/d/1tLx8LRp-sxDp0EcYmYoV_vXdSc-jJ79w/view)からダウンロード
 1. gcloudコマンドでデータセットをダウンロード
