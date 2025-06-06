@@ -1,3 +1,23 @@
+# Compute Engineで推論環境を整える手順
+
+1. CatVTONはCUDAを使うので「1 x NVIDIA T4」GPUを選択してCompute Engineを作成する
+    - ちなみに最近Cloud RunもGPU対応したが、SSHログインしてスクリプト実行したりVS Code Remote Development Syncで同期開発するためにVMの方が良い
+1. ディスクストレージがデフォルト10GBなので、100GBとかにあげる
+    - 10GBでは容量全然足りないので適宜あげる
+1. GPUドライバをインストールする
+    - GPUを使用するVMを作成するだけではGPUは使えず、アプリケーションがデバイスにアクセスできるように、システムにNVIDIAデバイスドライバが必要
+    - ブートディスクに最低40GB以上必要なので注意
+    - ref. https://cloud.google.com/compute/docs/gpus/install-drivers-gpu?hl=ja#no-secure-boot
+1. VM内で`nvidia-smi`コマンドで利用可能なGPUが返ってこればOK
+    - Not Foundの場合はドライバがインストールされていない
+1. Cloud Storageにテストデータセットバケットを作成し格納
+    - VITON-HDは[こちら](https://drive.google.com/file/d/1tLx8LRp-sxDp0EcYmYoV_vXdSc-jJ79w/view)からダウンロード
+1. gcloudコマンドでデータセットをダウンロード
+    - `gcloud storage cp -r gs://cat-vton-datasets/ ./VITON-HD`
+1. `./inference.sh`で推論する
+
+---
+
 # [ICLR 25]🐈 CatVTON: Concatenation Is All You Need for Virtual Try-On with Diffusion Models
 
 <div style="display: flex; justify-content: center; align-items: center;">
@@ -24,22 +44,20 @@
   </a>
 </div>
 
-
 **CatVTON** is a simple and efficient virtual try-on diffusion model with ***1) Lightweight Network (899.06M parameters totally)***, ***2) Parameter-Efficient Training (49.57M parameters trainable)*** and ***3) Simplified Inference (< 8G VRAM for 1024X768 resolution)***.
 <div align="center">
   <img src="resource/img/teaser.jpg" width="100%" height="100%"/>
 </div>
 
+## Updates
 
-
-## Updates 
 - **`2025/02/24`**: 🎉 We are excited to announce [**CatV2TON**](https://github.com/Zheng-Chong/CatV2TON), our new DiT-based model that supports both **image and video try-on**! Check it out!
 - **`2025/02/20`**: Our [**Paper on ArXiv**](http://arxiv.org/abs/2407.15886) has been updated to v2, which includes more details.
 - **`2025/01/24`**: 🥳 CatVTON has been accepted to **ICLR 2025**!
 - **`2024/12/20`**: 😄 Code for gradio app of **CatVTON-FLUX** has been released! It is not a stable version, but it is a good start!
 - **`2024/12/19`**: [**CatVTON-FLUX**](https://huggingface.co/spaces/zhengchong/CatVTON) has been released! It is a extremely lightweight LoRA (only 37.4M checkpints) for [FLUX.1-Fill-dev](https://huggingface.co/black-forest-labs/FLUX.1-Fill-dev), the lora weights are available in **[huggingface repo](https://huggingface.co/zhengchong/CatVTON/tree/main/flux-lora)**, code will be released soon!
 - **`2024/11/26`**: Our **unified vision-based model for image and video try-on** will be released soon, bringing a brand-new virtual try-on experience! While our demo page will be temporarily taken offline, [**the demo on HuggingFace Space**](https://huggingface.co/spaces/zhengchong/CatVTON) will remain available for use !
-- **`2024/10/17`**:[**Mask-free version**](https://huggingface.co/zhengchong/CatVTON-MaskFree)🤗 of CatVTON is release ! 
+- **`2024/10/17`**:[**Mask-free version**](https://huggingface.co/zhengchong/CatVTON-MaskFree)🤗 of CatVTON is release !
 - **`2024/10/13`**: We have built a repo [**Awesome-Try-On-Models**](https://github.com/Zheng-Chong/Awesome-Try-On-Models) that focuses on image, video, and 3D-based try-on models published after 2023, aiming to provide insights into the latest technological trends. If you're interested, feel free to contribute or give it a 🌟 star!
 - **`2024/08/13`**: We localize DensePose & SCHP to avoid certain environment issues.
 - **`2024/08/10`**: Our 🤗 [**HuggingFace Space**](https://huggingface.co/spaces/zhengchong/CatVTON) is available now! Thanks for the grant from [**ZeroGPU**](https://huggingface.co/zero-gpu-explorers)！
@@ -50,12 +68,10 @@
 - **`2024/07/21`**: Our [**Inference Code**](https://github.com/Zheng-Chong/CatVTON/blob/main/inference.py) and [**Weights** 🤗](https://huggingface.co/zhengchong/CatVTON) are released.
 - **`2024/07/11`**: Our [**Online Demo**](https://huggingface.co/spaces/zhengchong/CatVTON) is released 😁.
 
-
-
-
 ## Installation
 
 Create a conda environment & Install requirments
+
 ```shell
 conda create -n catvton python==3.9.0
 conda activate catvton
@@ -63,8 +79,10 @@ cd CatVTON-main  # or your path to CatVTON project dir
 pip install -r requirements.txt
 ```
 
-## Deployment 
+## Deployment
+
 ### ComfyUI Workflow
+
 We have modified the main code to enable easy deployment of CatVTON on [ComfyUI](https://github.com/comfyanonymous/ComfyUI). Due to the incompatibility of the code structure, we have released this part in the [Releases](https://github.com/Zheng-Chong/CatVTON/releases/tag/ComfyUI), which includes the code placed under `custom_nodes` of ComfyUI and our workflow JSON files.
 
 To deploy CatVTON to your ComfyUI, follow these steps:
@@ -74,7 +92,7 @@ To deploy CatVTON to your ComfyUI, follow these steps:
 4. Download [`catvton_workflow.json`](https://github.com/Zheng-Chong/CatVTON/releases/download/ComfyUI/catvton_workflow.json) and drag it into you ComfyUI webpage and enjoy 😆!
 
 > Problems under Windows OS, please refer to [issue#8](https://github.com/Zheng-Chong/CatVTON/issues/8).
-> 
+>
 When you run the CatVTON workflow for the first time, the weight files will be automatically downloaded, usually taking dozens of minutes.
 
 <div align="center">
@@ -95,12 +113,16 @@ CUDA_VISIBLE_DEVICES=0 python app.py \
 --mixed_precision="bf16" \
 --allow_tf32 
 ```
+
 When using `bf16` precision, generating results with a resolution of `1024x768` only requires about `8G` VRAM.
 
 ## Inference
+
 ### 1. Data Preparation
+
 Before inference, you need to download the [VITON-HD](https://github.com/shadow2496/VITON-HD) or [DressCode](https://github.com/aimagelab/dress-code) dataset.
 Once the datasets are downloaded, the folder structures should look like these:
+
 ```
 ├── VITON-HD
 |   ├── test_pairs_unpaired.txt
@@ -127,13 +149,16 @@ Once the datasets are downloaded, the folder structures should look like these:
 │   │   │   ├── [013563_0.png| 013564_0.png | ...]
 ...
 ```
+
 For the DressCode dataset, we provide script to preprocessed agnostic masks, run the following command:
+
 ```PowerShell
 CUDA_VISIBLE_DEVICES=0 python preprocess_agnostic_mask.py \
 --data_root_path <your_path_to_DressCode> 
 ```
 
 ### 2. Inference on VTIONHD/DressCode
+
 To run the inference on the DressCode or VITON-HD dataset, run the following command, checkpoints will be automatically downloaded from HuggingFace.
 
 ```PowerShell
@@ -149,9 +174,10 @@ CUDA_VISIBLE_DEVICES=0 python inference.py \
 --repaint \
 --eval_pair  
 ```
+
 ### 3. Calculate Metrics
 
-After obtaining the inference results, calculate the metrics using the following command: 
+After obtaining the inference results, calculate the metrics using the following command:
 
 ```PowerShell
 CUDA_VISIBLE_DEVICES=0 python eval.py \
@@ -162,17 +188,17 @@ CUDA_VISIBLE_DEVICES=0 python eval.py \
 --num_workers=16 
 ```
 
--  `--gt_folder` and `--pred_folder` should be folders that contain **only images**.
+- `--gt_folder` and `--pred_folder` should be folders that contain **only images**.
 - To evaluate the results in a paired setting, use `--paired`; for an unpaired setting, simply omit it.
 - `--batch_size` and `--num_workers` should be adjusted based on your machine.
 
-
 ## Acknowledgement
+
 Our code is modified based on [Diffusers](https://github.com/huggingface/diffusers). We adopt [Stable Diffusion v1.5 inpainting](https://huggingface.co/runwayml/stable-diffusion-inpainting) as the base model. We use [SCHP](https://github.com/GoGoDuck912/Self-Correction-Human-Parsing/tree/master) and [DensePose](https://github.com/facebookresearch/DensePose) to automatically generate masks in our [Gradio](https://github.com/gradio-app/gradio) App and [ComfyUI](https://github.com/comfyanonymous/ComfyUI) workflow. Thanks to all the contributors!
 
 ## License
-All the materials, including code, checkpoints, and demo, are made available under the [Creative Commons BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license. You are free to copy, redistribute, remix, transform, and build upon the project for non-commercial purposes, as long as you give appropriate credit and distribute your contributions under the same license.
 
+All the materials, including code, checkpoints, and demo, are made available under the [Creative Commons BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license. You are free to copy, redistribute, remix, transform, and build upon the project for non-commercial purposes, as long as you give appropriate credit and distribute your contributions under the same license.
 
 ## Citation
 
